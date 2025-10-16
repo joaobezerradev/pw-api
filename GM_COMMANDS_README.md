@@ -12,6 +12,7 @@ Implementação completa dos comandos GM para administração do servidor Perfec
 | **RenameRole** | 3404 (0xD4C) | 29400 | Renomear personagem | ✅ Testado |
 | **GetUserRoles** | 3401 (0xD49) | 29400 | Listar personagens da conta | ✅ Implementado |
 | **ClearStorehousePasswd** | 3402 (0xD4A) | 29400 | Remover lock do armazém | ✅ Implementado |
+| **ChatBroadcast** | 120 (0x78) | 29300 | Broadcast de mensagens | ✅ Implementado |
 
 ## 🚀 Uso Rápido
 
@@ -221,6 +222,51 @@ if (rpc.output.retcode === 0) {
 - ✅ Personagem deve estar **OFFLINE/deslogado**
 - ❌ Se o personagem estiver online, o comando **NÃO funciona**
 - ✅ Após executar, o jogador pode relogar normalmente
+
+### 9. Broadcast de Mensagens (ChatBroadcast)
+
+⚠️ **NOTA**: Este é um Protocol (fire and forget), não retorna resposta direta.
+
+```typescript
+import { ChatBroadcast, ChatChannel } from './src';
+
+// Mensagem de sistema para todos os jogadores
+await ChatBroadcast.sendSystem('127.0.0.1', 29300, {
+  message: 'Servidor reiniciará em 10 minutos!',
+});
+
+// Mensagem mundial
+await ChatBroadcast.sendWorld('127.0.0.1', 29300, {
+  message: 'Bem-vindos ao servidor!',
+  srcRoleId: 0,  // 0 = mensagem do sistema
+});
+
+// Mensagem via horn/megafone
+await ChatBroadcast.sendHorn('127.0.0.1', 29300, {
+  message: 'Evento especial começou!',
+  srcRoleId: 1073,  // ID do personagem
+});
+
+console.log('✅ Mensagens enviadas');
+```
+
+**Canais Disponíveis:**
+- `ChatChannel.WORLD` (9): Chat mundial
+- `ChatChannel.SYSTEM` (12): Mensagens de sistema
+- `ChatChannel.HORN` (13): Horn/Megafone
+
+**Parâmetros:**
+- `channel`: Canal da mensagem
+- `srcRoleId`: ID do remetente (0 = sistema, >0 = personagem)
+- `message`: Texto da mensagem
+- `emotion`: Emoção/emoji (opcional, padrão: 0)
+- `data`: Dados adicionais (opcional, padrão: '')
+
+**Características:**
+- ⚠️ Fire and forget - não retorna resposta
+- ✅ Visível para todos os jogadores online
+- ✅ Pode ser enviado em nome do sistema ou de um personagem
+- ✅ Útil para anúncios, eventos, manutenções
 
 ## 📊 Operações do ForbidUser
 
@@ -454,6 +500,29 @@ writer.writeOctetsString('');              // reserved vazio
 
 ⚠️ **Nota**: O XML especifica 3 campos (roleid, rolename, reserved), mas o código PHP só envia 2. A implementação TypeScript segue o XML completo para compatibilidade máxima.
 
+### ChatBroadcast (broadcast)
+
+**PHP:**
+```php
+$Packet->WriteUByte($data['channel']);    // Canal
+$Packet->WriteUByte(0);                   // Emotion
+$Packet->WriteUInt32($data['sender']);    // srcroleid
+$Packet->WriteUString($data['message']);  // msg
+$Packet->WriteOctets("");                 // data
+$Packet->Pack(120); // 0x78
+```
+
+**TypeScript:**
+```typescript
+writer.writeUInt8(channel);          // Canal
+writer.writeUInt8(emotion);          // Emotion
+writer.writeInt32BE(srcRoleId);      // srcroleid
+writer.writeOctetsString(message);   // msg (Octets)
+writer.writeOctetsString(data);      // data (Octets)
+```
+
+**Porta:** 29300 (GPROVIDER)
+
 ## 🧪 Testes
 
 ```bash
@@ -471,6 +540,9 @@ npx tsx examples/exemplo-clear-lock.ts
 
 # Exemplo completo de gerenciamento de usuário
 npx tsx examples/exemplo-user-management.ts
+
+# Testar broadcast de mensagens
+npx tsx examples/exemplo-broadcast.ts
 ```
 
 ## 📊 Teste Real - ForbidUser
@@ -544,15 +616,17 @@ src/actions/clear-storehouse-passwd/
 └── index.ts          ✅ RPC remover lock
 
 src/protocols/
-├── gm-ban-role.ts    ✅ Protocol ban personagem
-└── gm-mute-role.ts   ✅ Protocol mute personagem
+├── gm-ban-role.ts     ✅ Protocol ban personagem
+├── gm-mute-role.ts    ✅ Protocol mute personagem
+└── chat-broadcast.ts  ✅ Protocol broadcast mensagens
 
 examples/
 ├── exemplo-gm-commands.ts      ✅ Exemplo GM completo
 ├── exemplo-rename-role.ts      ✅ Exemplo rename
 ├── exemplo-get-user-roles.ts   ✅ Exemplo listar personagens
 ├── exemplo-clear-lock.ts       ✅ Exemplo remover lock
-└── exemplo-user-management.ts  ✅ Exemplo gerenciamento completo
+├── exemplo-user-management.ts  ✅ Exemplo gerenciamento completo
+└── exemplo-broadcast.ts        ✅ Exemplo broadcast
 ```
 
 ## ✅ Checklist
@@ -563,6 +637,7 @@ examples/
 - [x] RenameRole (RPC) implementado e testado
 - [x] GetUserRoles (RPC) implementado
 - [x] ClearStorehousePasswd (RPC) implementado
+- [x] ChatBroadcast (Protocol) implementado
 - [x] Exemplos de uso criados
 - [x] Documentação completa
 - [x] Compatível com código PHP
@@ -579,6 +654,7 @@ examples/
 - ✅ RenameRole (Renomear personagem) - Porta 29400 - **TESTADO**
 - ✅ GetUserRoles (Listar personagens) - Porta 29400 - **FUNCIONAL**
 - ✅ ClearStorehousePasswd (Remover lock) - Porta 29400 - **FUNCIONAL**
+- ✅ ChatBroadcast (Broadcast de mensagens) - Porta 29300 - **FUNCIONAL**
 
 ---
 
