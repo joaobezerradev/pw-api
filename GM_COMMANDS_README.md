@@ -10,6 +10,8 @@ Implementação completa dos comandos GM para administração do servidor Perfec
 | **GMBanRole** | 360 (0x168) | 29100 | Ban de personagem | ✅ Implementado |
 | **GMMuteRole** | 356 (0x164) | 29100 | Mute de personagem | ✅ Implementado |
 | **RenameRole** | 3404 (0xD4C) | 29400 | Renomear personagem | ✅ Testado |
+| **GetUserRoles** | 3401 (0xD49) | 29400 | Listar personagens da conta | ✅ Implementado |
+| **ClearStorehousePasswd** | 3402 (0xD4A) | 29400 | Remover lock do armazém | ✅ Implementado |
 
 ## 🚀 Uso Rápido
 
@@ -146,6 +148,68 @@ if (rpc.output.retcode === 0) {
 - `5`: Personagem está online (precisa estar offline)
 - `6`: Nome em uso ou reservado
 - `7`: Operação não permitida
+
+### 7. Listar Personagens da Conta (GetUserRoles)
+
+✅ **NOTA**: Este é um RPC, retorna resposta com lista de personagens.
+
+```typescript
+import { GetUserRoles } from './src';
+
+// Listar personagens de uma conta
+const rpc = await connection.call(new GetUserRoles({
+  userid: 16,
+}));
+
+if (rpc.output.retcode === 0) {
+  console.log(`Total: ${rpc.output.count} personagens`);
+  rpc.output.roles.forEach(role => {
+    console.log(`- ${role.rolename} (ID: ${role.roleid})`);
+  });
+}
+```
+
+**Resultado:**
+```json
+{
+  "retcode": 0,
+  "count": 3,
+  "roles": [
+    { "roleid": 1073, "rolename": "JJJ" },
+    { "roleid": 1074, "rolename": "Personagem2" },
+    { "roleid": 1075, "rolename": "Personagem3" }
+  ]
+}
+```
+
+### 8. Remover Lock do Armazém (ClearStorehousePasswd)
+
+✅ **NOTA**: Este é um RPC, retorna resposta com retcode.
+
+```typescript
+import { ClearStorehousePasswd } from './src';
+
+// Remover senha do armazém
+const rpc = await connection.call(new ClearStorehousePasswd({
+  roleid: 1073,
+}));
+
+if (rpc.output.retcode === 0) {
+  console.log('✅ Lock removido com sucesso!');
+}
+```
+
+**Resultado:**
+```json
+{
+  "retcode": 0
+}
+```
+
+**O que faz:**
+- Remove a senha do armazém (storehouse)
+- Útil quando o jogador esquece a senha
+- Após remover, o jogador pode acessar sem senha
 
 ## 📊 Operações do ForbidUser
 
@@ -307,14 +371,95 @@ writer.writeUInt32BE(time);
 writer.writeOctetsString(reason);
 ```
 
+### RenameRole
+
+**PHP:**
+```php
+$Packet->WriteUInt32(-1);
+$Packet->WriteUInt32($roleid);
+$Packet->WriteUString($oldname);
+$Packet->WriteUString($newname);
+$Packet->Pack(0xD4C); // 3404
+```
+
+**TypeScript:**
+```typescript
+writer.writeInt32BE(-1);
+writer.writeInt32BE(roleId);
+writer.writeOctetsString(oldName);
+writer.writeOctetsString(newName);
+```
+
+### GetUserRoles
+
+**PHP:**
+```php
+$Packet->WriteUInt32(-1);
+$Packet->WriteUInt32($userid);
+$Packet->Pack(0xD49); // 3401
+
+// Leitura
+$result->ReadInt32(); // localsid
+$result->ReadInt32(); // retcode
+$count = $result->ReadCUInt32();
+for ($i = 0; $i < $count; $i++) {
+    $roleid = $result->ReadUInt32();
+    $rolename = $result->ReadString();
+}
+```
+
+**TypeScript:**
+```typescript
+// Envio
+writer.writeInt32BE(-1);
+writer.writeInt32BE(userid);
+
+// Leitura
+const localsid = reader.readInt32BE();
+const retcode = reader.readInt32BE();
+const count = reader.readCompactUINT();
+for (let i = 0; i < count; i++) {
+    const roleid = reader.readUInt32BE();
+    const rolename = reader.readOctetsAsString();
+}
+```
+
+### ClearStorehousePasswd (removeLock)
+
+**PHP:**
+```php
+$Packet->WriteUInt32(-1);
+$Packet->WriteUInt32($userid);
+$Packet->Pack(0xD4A); // 3402
+```
+
+**TypeScript:**
+```typescript
+writer.writeInt32BE(-1);
+writer.writeInt32BE(roleid);
+writer.writeOctetsString(rolename || '');  // Octets vazio
+writer.writeOctetsString('');              // reserved vazio
+```
+
+⚠️ **Nota**: O XML especifica 3 campos (roleid, rolename, reserved), mas o código PHP só envia 2. A implementação TypeScript segue o XML completo para compatibilidade máxima.
+
 ## 🧪 Testes
 
 ```bash
-# Testar ForbidUser
+# Testar comandos GM (ForbidUser, GMBanRole, GMMuteRole)
 npx tsx examples/exemplo-gm-commands.ts
 
-# Ver exemplo completo
-cat examples/exemplo-gm-commands.ts
+# Testar renomear personagem
+npx tsx examples/exemplo-rename-role.ts
+
+# Testar listar personagens de uma conta
+npx tsx examples/exemplo-get-user-roles.ts
+
+# Testar remover lock do armazém
+npx tsx examples/exemplo-clear-lock.ts
+
+# Exemplo completo de gerenciamento de usuário
+npx tsx examples/exemplo-user-management.ts
 ```
 
 ## 📊 Teste Real - ForbidUser
@@ -365,13 +510,22 @@ src/actions/forbid-user/
 src/actions/rename-role/
 └── index.ts          ✅ RPC renomear personagem
 
+src/actions/get-user-roles/
+└── index.ts          ✅ RPC listar personagens
+
+src/actions/clear-storehouse-passwd/
+└── index.ts          ✅ RPC remover lock
+
 src/protocols/
 ├── gm-ban-role.ts    ✅ Protocol ban personagem
 └── gm-mute-role.ts   ✅ Protocol mute personagem
 
 examples/
-├── exemplo-gm-commands.ts  ✅ Exemplo completo
-└── exemplo-rename-role.ts  ✅ Exemplo rename
+├── exemplo-gm-commands.ts      ✅ Exemplo GM completo
+├── exemplo-rename-role.ts      ✅ Exemplo rename
+├── exemplo-get-user-roles.ts   ✅ Exemplo listar personagens
+├── exemplo-clear-lock.ts       ✅ Exemplo remover lock
+└── exemplo-user-management.ts  ✅ Exemplo gerenciamento completo
 ```
 
 ## ✅ Checklist
@@ -380,6 +534,8 @@ examples/
 - [x] GMBanRole (Protocol) implementado
 - [x] GMMuteRole (Protocol) implementado
 - [x] RenameRole (RPC) implementado e testado
+- [x] GetUserRoles (RPC) implementado
+- [x] ClearStorehousePasswd (RPC) implementado
 - [x] Exemplos de uso criados
 - [x] Documentação completa
 - [x] Compatível com código PHP
@@ -394,6 +550,8 @@ examples/
 - ✅ GMBanRole (Ban de personagem) - Porta 29100 - **FUNCIONAL**
 - ✅ GMMuteRole (Mute de personagem) - Porta 29100 - **FUNCIONAL**
 - ✅ RenameRole (Renomear personagem) - Porta 29400 - **TESTADO**
+- ✅ GetUserRoles (Listar personagens) - Porta 29400 - **FUNCIONAL**
+- ✅ ClearStorehousePasswd (Remover lock) - Porta 29400 - **FUNCIONAL**
 
 ---
 

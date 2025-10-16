@@ -38,6 +38,8 @@ export { GetUserFaction } from './actions/get-user-faction';
 export { ForbidUser } from './actions/forbid-user';
 export { SendMail } from './actions/send-mail';
 export { RenameRole } from './actions/rename-role';
+export { GetUserRoles } from './actions/get-user-roles';
+export { ClearStorehousePasswd } from './actions/clear-storehouse-passwd';
 
 // GM Protocols
 export { GMBanRole } from './protocols/gm-ban-role';
