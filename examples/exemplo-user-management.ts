@@ -38,11 +38,12 @@ async function exemploUserManagement() {
     // 2. Remover lock do armazém (usando o primeiro personagem)
     console.log('\n📋 2. Removendo Lock do Armazém');
     console.log('─'.repeat(50));
+    console.log('⚠️  IMPORTANTE: Personagem PRECISA estar OFFLINE!\n');
     
     let clearLockRpc;
     if (rolesRpc.output.count > 0) {
       const firstRole = rolesRpc.output.roles[0];
-      console.log(`Usando RoleID: ${firstRole.roleid} (${firstRole.rolename})\n`);
+      console.log(`Usando RoleID: ${firstRole.roleid} (${firstRole.rolename})`);
       clearLockRpc = await connection.call(new ClearStorehousePasswd({ 
         roleid: firstRole.roleid 
       }));

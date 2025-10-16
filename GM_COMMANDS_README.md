@@ -115,10 +115,12 @@ console.log('✅ Personagem desmutado');
 
 ✅ **NOTA**: Este é um RPC, retorna resposta com retcode.
 
+⚠️ **RECOMENDADO**: Personagem deve estar OFFLINE para evitar problemas.
+
 ```typescript
 import { RenameRole } from './src';
 
-// Renomear personagem
+// Renomear personagem (recomendado que esteja offline)
 const rpc = await connection.call(new RenameRole({
   roleId: 1073,
   oldName: 'NomeAntigo',
@@ -186,9 +188,12 @@ if (rpc.output.retcode === 0) {
 
 ✅ **NOTA**: Este é um RPC, retorna resposta com retcode.
 
+⚠️ **IMPORTANTE**: O personagem **PRECISA estar OFFLINE/deslogado** para funcionar!
+
 ```typescript
 import { ClearStorehousePasswd } from './src';
 
+// ⚠️ Certifique-se que o personagem está OFFLINE antes de executar!
 // Remover senha do armazém
 const rpc = await connection.call(new ClearStorehousePasswd({
   roleid: 1073,
@@ -196,6 +201,7 @@ const rpc = await connection.call(new ClearStorehousePasswd({
 
 if (rpc.output.retcode === 0) {
   console.log('✅ Lock removido com sucesso!');
+  console.log('O jogador pode relogar e acessar o armazém sem senha.');
 }
 ```
 
@@ -210,6 +216,11 @@ if (rpc.output.retcode === 0) {
 - Remove a senha do armazém (storehouse)
 - Útil quando o jogador esquece a senha
 - Após remover, o jogador pode acessar sem senha
+
+**⚠️ Requisitos:**
+- ✅ Personagem deve estar **OFFLINE/deslogado**
+- ❌ Se o personagem estiver online, o comando **NÃO funciona**
+- ✅ Após executar, o jogador pode relogar normalmente
 
 ## 📊 Operações do ForbidUser
 
@@ -498,6 +509,22 @@ Retcode: 0
 3. **Ban Permanente**: Use `time = 0` ou valor muito alto
 4. **Logs**: Todos os bans são registrados no banco de dados
 5. **Responsabilidade**: Use com cuidado - afeta jogadores reais
+
+### 🔒 Requisitos de Status do Personagem
+
+| Comando | Requer Offline? | Observações |
+|---------|-----------------|-------------|
+| **ForbidUser** | ❌ Não | Funciona com usuário online ou offline |
+| **GMBanRole** | ⚠️ Recomendado | Fire-and-forget, melhor executar offline |
+| **GMMuteRole** | ⚠️ Recomendado | Fire-and-forget, melhor executar offline |
+| **RenameRole** | ⚠️ Recomendado | Funciona online, mas pode causar dessinc |
+| **GetUserRoles** | ❌ Não | Apenas consulta, funciona sempre |
+| **ClearStorehousePasswd** | ✅ **SIM** | **Obrigatório** estar offline! |
+
+**Legenda:**
+- ✅ **SIM** = Personagem **DEVE** estar offline/deslogado
+- ⚠️ Recomendado = Funciona online, mas pode ter problemas
+- ❌ Não = Funciona com personagem online ou offline
 
 ## 📁 Arquivos Implementados
 

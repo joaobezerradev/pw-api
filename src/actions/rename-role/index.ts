@@ -21,6 +21,8 @@ export type RenameRoleOutput = {
  * Renomeia um personagem (role)
  * Porta: 29400 (GAMEDBD)
  * 
+ * ⚠️ RECOMENDADO: Personagem deve estar OFFLINE para evitar problemas
+ * 
  * @example
  * ```typescript
  * const connection = new GameConnection('127.0.0.1', 29400);
