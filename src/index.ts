@@ -45,3 +45,4 @@ export { ClearStorehousePasswd } from './actions/clear-storehouse-passwd';
 export { GMBanRole } from './protocols/gm-ban-role';
 export { GMMuteRole } from './protocols/gm-mute-role';
 export { ChatBroadcast, ChatChannel } from './protocols/chat-broadcast';
+export { GMListOnlineUser } from './protocols/gm-list-online-user';
