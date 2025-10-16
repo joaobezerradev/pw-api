@@ -523,6 +523,29 @@ writer.writeOctetsString(data);      // data (Octets)
 
 **Porta:** 29300 (GPROVIDER)
 
+### GMListOnlineUser (onlineList)
+
+**PHP:**
+```php
+$Packet->WriteInt32($gmRoleId);   // GM ROLEID
+$Packet->WriteInt32(1);           // Localsid
+$Packet->WriteUInt32($handler);   // Handler
+$Packet->WriteOctets(1);          // Cond
+$Packet->Pack(0x160); // 352
+```
+
+**TypeScript:**
+```typescript
+writer.writeInt32BE(gmRoleId);      // GM ROLEID
+writer.writeUInt32BE(localsid);     // Localsid
+writer.writeInt32BE(handler);       // Handler (paginação)
+writer.writeCompactUINT(1);         // Cond size
+writer.writeUInt8(1);               // Cond value
+```
+
+**Porta:** 29100 (GDELIVERYD)  
+**Loop:** Automático até handler = 0xFFFFFFFF
+
 ## 🧪 Testes
 
 ```bash

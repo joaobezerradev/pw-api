@@ -162,9 +162,6 @@ export class GMListOnlineUser extends Protocol {
         
         if (foundResponse) return; // Já processou a resposta
         
-        console.log(`[GMListOnlineUser] Received ${data.length} bytes, Total: ${responseBuffer.length} bytes`);
-        console.log(`[GMListOnlineUser] Response hex: ${responseBuffer.toString('hex')}`);
-        
         try {
           const reader = new BufferReader(responseBuffer);
           
@@ -176,16 +173,10 @@ export class GMListOnlineUser extends Protocol {
               const responseType = reader.readCompactUINT();
               const size = reader.readCompactUINT();
               
-              console.log(`[GMListOnlineUser] Protocol: Type=${responseType}, Size=${size} bytes`);
-              
               if (responseType === 353) {
                 // GMListOnlineUser_Re encontrado!
-                console.log(`[GMListOnlineUser] Found GMListOnlineUser_Re (353)!`);
-                
                 const protocol = new GMListOnlineUser(params);
                 protocol.unmarshal(reader);
-                
-                console.log(`[GMListOnlineUser] Retcode: ${protocol.retcode}, Handler: ${protocol.responseHandler}, Players: ${protocol.userlist.length}`);
                 
                 foundResponse = true;
                 socket.end();
@@ -200,8 +191,7 @@ export class GMListOnlineUser extends Protocol {
                 }
                 break;
               } else {
-                // Pula este protocolo
-                console.log(`[GMListOnlineUser] Skipping protocol type ${responseType} (size: ${size})`);
+                // Pula protocolos extras (AnnounceServerAttribute, etc)
                 reader.setOffset(reader.getOffset() + size);
               }
             } catch (e) {
@@ -212,7 +202,6 @@ export class GMListOnlineUser extends Protocol {
           }
         } catch (error: any) {
           // Aguarda mais dados
-          console.log(`[GMListOnlineUser] Waiting for more data... (${error.message})`);
         }
       });
       
@@ -230,11 +219,7 @@ export class GMListOnlineUser extends Protocol {
           writer.writeCompactUINT(data.length);
           writer.writeBuffer(data);
           
-          const packet = writer.toBuffer();
-          console.log(`[GMListOnlineUser] Sending packet: Type=${protocol.getType()}, Size=${data.length} bytes, Total=${packet.length} bytes`);
-          console.log(`[GMListOnlineUser] Packet hex: ${packet.toString('hex').substring(0, 100)}...`);
-          
-          socket.write(packet);
+          socket.write(writer.toBuffer());
         } catch (error) {
           socket.destroy();
           reject(error);
@@ -256,14 +241,9 @@ export class GMListOnlineUser extends Protocol {
   }): Promise<OnlinePlayer[]> {
     const allPlayers: OnlinePlayer[] = [];
     let handler = -1;
-    let iteration = 0;
     
     // Loop infinito até handler = 0xFFFFFFFF (4294967295 unsigned)
     do {
-      iteration++;
-      
-      console.log(`[GMListOnlineUser] Iteration ${iteration}, Handler: ${handler}`);
-      
       try {
         const result = await this.fetchPage(host, port, {
           ...params,
@@ -273,8 +253,6 @@ export class GMListOnlineUser extends Protocol {
         allPlayers.push(...result.players);
         handler = result.nextHandler;
         
-        console.log(`[GMListOnlineUser] Fetched ${result.players.length} players, Next handler: ${handler}`);
-        
         // Se handler for negativo e não for -1, converte para unsigned
         if (handler < 0 && handler !== -1) {
           handler = handler >>> 0; // Converte para unsigned
@@ -282,12 +260,10 @@ export class GMListOnlineUser extends Protocol {
         
         // Verifica se chegou ao fim (handler = 0xFFFFFFFF = 4294967295)
         if (handler === 4294967295 || handler === 0xFFFFFFFF) {
-          console.log(`[GMListOnlineUser] Reached end marker, Total players: ${allPlayers.length}`);
           break;
         }
         
       } catch (error: any) {
-        console.error(`[GMListOnlineUser] Error in iteration ${iteration}:`, error.message);
         throw error;
       }
       
