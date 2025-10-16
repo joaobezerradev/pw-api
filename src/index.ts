@@ -37,6 +37,7 @@ export { GetFactionInfo } from './actions/get-faction-info';
 export { GetUserFaction } from './actions/get-user-faction';
 export { ForbidUser } from './actions/forbid-user';
 export { SendMail } from './actions/send-mail';
+export { RenameRole } from './actions/rename-role';
 
 // GM Protocols
 export { GMBanRole } from './protocols/gm-ban-role';

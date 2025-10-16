@@ -9,6 +9,7 @@ Implementação completa dos comandos GM para administração do servidor Perfec
 | **ForbidUser** | 8004 (0x1F44) | 29400 | Ban/Unban de conta | ✅ Testado |
 | **GMBanRole** | 360 (0x168) | 29100 | Ban de personagem | ✅ Implementado |
 | **GMMuteRole** | 356 (0x164) | 29100 | Mute de personagem | ✅ Implementado |
+| **RenameRole** | 3404 (0xD4C) | 29400 | Renomear personagem | ✅ Testado |
 
 ## 🚀 Uso Rápido
 
@@ -107,6 +108,44 @@ await GMMuteRole.unmute('127.0.0.1', 29100, {
 
 console.log('✅ Personagem desmutado');
 ```
+
+### 6. Renomear Personagem (RenameRole)
+
+✅ **NOTA**: Este é um RPC, retorna resposta com retcode.
+
+```typescript
+import { RenameRole } from './src';
+
+// Renomear personagem
+const rpc = await connection.call(new RenameRole({
+  roleId: 1073,
+  oldName: 'NomeAntigo',
+  newName: 'NovoNome',
+}));
+
+if (rpc.output.retcode === 0) {
+  console.log('✅ Personagem renomeado com sucesso!');
+} else {
+  console.log('❌ Erro:', rpc.output.retcode);
+}
+```
+
+**Resultado:**
+```json
+{
+  "retcode": 0
+}
+```
+
+**Códigos de Retorno:**
+- `0`: Sucesso - personagem renomeado
+- `1`: Personagem não encontrado
+- `2`: Nome antigo incorreto
+- `3`: Nome novo já existe
+- `4`: Nome novo inválido (caracteres especiais, tamanho, etc)
+- `5`: Personagem está online (precisa estar offline)
+- `6`: Nome em uso ou reservado
+- `7`: Operação não permitida
 
 ## 📊 Operações do ForbidUser
 
@@ -323,12 +362,16 @@ src/actions/forbid-user/
 ├── input.ts          ✅ Input types
 └── output.ts         ✅ Output types
 
+src/actions/rename-role/
+└── index.ts          ✅ RPC renomear personagem
+
 src/protocols/
 ├── gm-ban-role.ts    ✅ Protocol ban personagem
 └── gm-mute-role.ts   ✅ Protocol mute personagem
 
 examples/
-└── exemplo-gm-commands.ts  ✅ Exemplo completo
+├── exemplo-gm-commands.ts  ✅ Exemplo completo
+└── exemplo-rename-role.ts  ✅ Exemplo rename
 ```
 
 ## ✅ Checklist
@@ -336,6 +379,7 @@ examples/
 - [x] ForbidUser (RPC) implementado e testado
 - [x] GMBanRole (Protocol) implementado
 - [x] GMMuteRole (Protocol) implementado
+- [x] RenameRole (RPC) implementado e testado
 - [x] Exemplos de uso criados
 - [x] Documentação completa
 - [x] Compatível com código PHP
@@ -349,6 +393,7 @@ examples/
 - ✅ ForbidUser (Ban/Unban de conta) - Porta 29400 - **TESTADO**
 - ✅ GMBanRole (Ban de personagem) - Porta 29100 - **FUNCIONAL**
 - ✅ GMMuteRole (Mute de personagem) - Porta 29100 - **FUNCIONAL**
+- ✅ RenameRole (Renomear personagem) - Porta 29400 - **TESTADO**
 
 ---
 
