@@ -212,5 +212,102 @@ export class GameConnection extends EventEmitter {
       socket.connect(this.port, this.host);
     });
   }
+
+  /**
+   * Envia um Protocol (fire and forget)
+   * Não aguarda resposta do servidor
+   * 
+   * @param protocol Protocol a ser enviado
+   * @param timeout Timeout em ms (padrão: 5000)
+   */
+  async sendProtocol(protocol: Protocol, timeout: number = 5000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const socket = new net.Socket();
+      socket.setNoDelay(true);
+      socket.setTimeout(timeout);
+      
+      let connectionEstablished = false;
+
+      // Timeout
+      const timer = setTimeout(() => {
+        if (!connectionEstablished) {
+          socket.destroy();
+          reject(new Error(`Protocol send timeout (type=${protocol.getType()})`));
+        }
+      }, timeout);
+
+      // Quando conectar, envia o pacote
+      socket.on('connect', () => {
+        connectionEstablished = true;
+        this.logger.debug({ 
+          event: 'protocol_connect',
+          protocol: protocol.constructor.name,
+          type: protocol.getType(),
+          host: this.host,
+          port: this.port
+        });
+        
+        try {
+          // Codifica os dados do protocolo
+          const dataWriter = new BufferWriter();
+          protocol.marshal(dataWriter);
+          const data = dataWriter.toBuffer();
+          
+          // Monta o pacote: [opcode][tamanho][dados]
+          const writer = new BufferWriter();
+          writer.writeCompactUINT(protocol.getType());
+          writer.writeCompactUINT(data.length);
+          writer.writeBuffer(data);
+          
+          const finalPacket = writer.toBuffer();
+          
+          this.logger.debug({
+            event: 'protocol_send',
+            protocol: protocol.constructor.name,
+            type: protocol.getType(),
+            size: finalPacket.length
+          });
+          
+          // Envia e fecha imediatamente (fire and forget)
+          socket.write(finalPacket, () => {
+            socket.end();
+            clearTimeout(timer);
+            
+            this.logger.info({
+              event: 'protocol_sent',
+              protocol: protocol.constructor.name,
+              type: protocol.getType()
+            });
+            
+            resolve();
+          });
+        } catch (error) {
+          clearTimeout(timer);
+          socket.destroy();
+          reject(error);
+        }
+      });
+
+      // Erro de conexão
+      socket.on('error', (error) => {
+        clearTimeout(timer);
+        this.logger.error({
+          event: 'protocol_error',
+          protocol: protocol.constructor.name,
+          error: error.message
+        });
+        reject(error);
+      });
+
+      // Conecta ao servidor
+      this.logger.debug({
+        event: 'protocol_connecting',
+        host: this.host,
+        port: this.port
+      });
+      
+      socket.connect(this.port, this.host);
+    });
+  }
 }
 
