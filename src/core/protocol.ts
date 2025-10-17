@@ -58,24 +58,8 @@ export abstract class Protocol {
  * RPC Base
  */
 export abstract class Rpc extends Protocol {
-  protected xid: number = 0;
-
   constructor(type: number) {
     super(type);
-  }
-
-  /**
-   * Define o XID da transação
-   */
-  setXid(xid: number): void {
-    this.xid = xid;
-  }
-
-  /**
-   * Retorna o XID da transação
-   */
-  getXid(): number {
-    return this.xid;
   }
 
   /**
@@ -89,18 +73,16 @@ export abstract class Rpc extends Protocol {
   abstract unmarshalResult(reader: BufferReader): void;
 
   /**
-   * Implementação padrão de marshal para RPCs (Big-Endian)
+   * Implementa莽茫o padr茫o de marshal para RPCs
    */
   marshal(writer: BufferWriter): void {
-    // RPCs não usam XID no marshal, apenas os argumentos
     this.marshalArgument(writer);
   }
 
   /**
-   * Implementação padrão de unmarshal para RPCs (Big-Endian)
+   * Implementa莽茫o padr茫o de unmarshal para RPCs
    */
   unmarshal(reader: BufferReader): void {
-    // Lê o retcode primeiro
     this.unmarshalResult(reader);
   }
 }
