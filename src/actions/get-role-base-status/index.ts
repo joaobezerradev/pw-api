@@ -1,4 +1,4 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 import { GetRoleBaseStatusInput } from './input';
 import { GetRoleBaseStatusOutput, RoleBase, RoleStatus } from './output';
 
@@ -6,13 +6,9 @@ import { GetRoleBaseStatusOutput, RoleBase, RoleStatus } from './output';
  * RPC GetRoleBaseStatus - Type 0x0BD1 (3025 decimal)
  * Obtém base + status do personagem (mais eficiente que 2 chamadas separadas)
  */
-export class GetRoleBaseStatus extends Rpc {
-  private input: GetRoleBaseStatusInput;
-  public output: GetRoleBaseStatusOutput = { retcode: -1 };
-
+export class GetRoleBaseStatus extends BaseRpc<GetRoleBaseStatusInput, GetRoleBaseStatusOutput> {
   constructor(input: GetRoleBaseStatusInput) {
-    super(0x0BD1); // 3025
-    this.input = input;
+    super(0x0BD1, input, { retcode: -1 }); // 3025
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -127,6 +123,15 @@ export class GetRoleBaseStatus extends Rpc {
     reader.readInt32BE(); // reserved5
 
     return status;
+  }
+
+  /**
+   * Busca base + status de um personagem (otimizado)
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: GetRoleBaseStatusInput): Promise<GetRoleBaseStatusOutput> {
+    const rpc = new GetRoleBaseStatus(input);
+    return this.executeRpc(host, port, rpc);
   }
 };
 

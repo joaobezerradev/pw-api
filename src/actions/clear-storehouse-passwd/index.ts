@@ -1,4 +1,4 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 
 /**
  * Input do RPC ClearStorehousePasswd
@@ -24,25 +24,21 @@ export type ClearStorehousePasswdOutput = {
  * 
  * @example
  * ```typescript
- * const connection = new GameConnection('127.0.0.1', 29400);
+ * import { ClearStorehousePasswd } from './src';
  * 
  * // ⚠️ Certifique-se que o personagem está OFFLINE antes de executar!
- * const rpc = await connection.call(new ClearStorehousePasswd({
+ * const result = await ClearStorehousePasswd.fetch('127.0.0.1', 29400, {
  *   roleid: 1073,
- * }));
+ * });
  * 
- * if (rpc.output.retcode === 0) {
+ * if (result.retcode === 0) {
  *   console.log('✅ Lock removido com sucesso!');
  * }
  * ```
  */
-export class ClearStorehousePasswd extends Rpc {
-  private input: ClearStorehousePasswdInput;
-  public output: ClearStorehousePasswdOutput = { retcode: -1 };
-
+export class ClearStorehousePasswd extends BaseRpc<ClearStorehousePasswdInput, ClearStorehousePasswdOutput> {
   constructor(input: ClearStorehousePasswdInput) {
-    super(3402); // 0xD4A = 3402
-    this.input = input;
+    super(3402, input, { retcode: -1 }); // 0xD4A = 3402
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -63,6 +59,15 @@ export class ClearStorehousePasswd extends Rpc {
     // Lê localsid primeiro (como outros RPCs)
     const localsid = reader.readInt32BE();
     this.output.retcode = reader.readInt32BE();
+  }
+
+  /**
+   * Remove senha do armazém
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: ClearStorehousePasswdInput): Promise<ClearStorehousePasswdOutput> {
+    const rpc = new ClearStorehousePasswd(input);
+    return this.executeRpc(host, port, rpc);
   }
 }
 

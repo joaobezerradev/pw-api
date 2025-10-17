@@ -1,18 +1,30 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 import { GetRoleBaseInput } from './input';
 import { GetRoleBaseOutput, RoleBase } from './output';
 
 /**
  * RPC GetRoleBase - Type 0x0BC5 (3013 decimal)
  * Obtém apenas os dados básicos do personagem
+ * Porta: 29400 (GAMEDBD)
+ * 
+ * @example
+ * ```typescript
+ * import { GetRoleBase } from './src';
+ * 
+ * // Buscar dados básicos de um personagem
+ * const result = await GetRoleBase.fetch('127.0.0.1', 29400, {
+ *   roleId: 1024,
+ * });
+ * 
+ * if (result.retcode === 0) {
+ *   console.log(`Nome: ${result.base?.name}`);
+ *   console.log(`Nível: ${result.base?.cls}`);
+ * }
+ * ```
  */
-export class GetRoleBase extends Rpc {
-  private input: GetRoleBaseInput;
-  public output: GetRoleBaseOutput = { retcode: -1 };
-
+export class GetRoleBase extends BaseRpc<GetRoleBaseInput, GetRoleBaseOutput> {
   constructor(input: GetRoleBaseInput) {
-    super(0x0BC5); // 3013
-    this.input = input;
+    super(0x0BC5, input, { retcode: -1 }); // 3013
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -68,6 +80,15 @@ export class GetRoleBase extends Rpc {
     return { version, id, name, race, cls, gender, custom_data, config_data, custom_stamp, 
              status, delete_time, create_time, lastlogin_time, forbid, help_states, 
              spouse, userid, cross_data };
+  }
+
+  /**
+   * Busca dados básicos de um personagem
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: GetRoleBaseInput): Promise<GetRoleBaseOutput> {
+    const rpc = new GetRoleBase(input);
+    return this.executeRpc(host, port, rpc);
   }
 };
 

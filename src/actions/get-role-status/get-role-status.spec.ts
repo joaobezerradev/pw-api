@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { GameConnection } from '../../core/game-connection';
 import { GetRoleStatus } from '.';
 
 const config = {
@@ -11,41 +10,41 @@ const TEST_ROLE_ID = 1073;
 
 describe('GetRoleStatus - Teste de Integração', () => {
   it('deve obter status do personagem com sucesso', async () => {
-    const client = new GameConnection(config.host, config.port);
+    // Using .fetch() method directly
     
     try {
-      const rpc = await client.call(new GetRoleStatus({ roleId: TEST_ROLE_ID }));
+      const result = await GetRoleStatus.fetch(config.host, config.port, { roleId: TEST_ROLE_ID });
       
       // Verifica retcode
-      expect(rpc.output.retcode).toBe(0);
+      expect(result.retcode).toBe(0);
       
       // Verifica status
-      expect(rpc.output.status).toBeDefined();
-      expect(rpc.output.status?.level).toBeGreaterThan(0);
-      expect(rpc.output.status?.level2).toBeGreaterThanOrEqual(0);
-      expect(rpc.output.status?.hp).toBeGreaterThan(0);
-      expect(rpc.output.status?.mp).toBeGreaterThan(0);
-      expect(rpc.output.status?.exp).toBeGreaterThanOrEqual(0);
-      expect(rpc.output.status?.sp).toBeGreaterThanOrEqual(0);
-      expect(rpc.output.status?.worldtag).toBeGreaterThanOrEqual(0);
+      expect(result.status).toBeDefined();
+      expect(result.status?.level).toBeGreaterThan(0);
+      expect(result.status?.level2).toBeGreaterThanOrEqual(0);
+      expect(result.status?.hp).toBeGreaterThan(0);
+      expect(result.status?.mp).toBeGreaterThan(0);
+      expect(result.status?.exp).toBeGreaterThanOrEqual(0);
+      expect(result.status?.sp).toBeGreaterThanOrEqual(0);
+      expect(result.status?.worldtag).toBeGreaterThanOrEqual(0);
       
       // Verifica posição
-      expect(rpc.output.status?.posx).toBeTypeOf('number');
-      expect(rpc.output.status?.posy).toBeTypeOf('number');
-      expect(rpc.output.status?.posz).toBeTypeOf('number');
+      expect(result.status?.posx).toBeTypeOf('number');
+      expect(result.status?.posy).toBeTypeOf('number');
+      expect(result.status?.posz).toBeTypeOf('number');
       
     } finally {
     }
   });
 
   it('deve retornar erro para roleId inválido', async () => {
-    const client = new GameConnection(config.host, config.port);
+    // Using .fetch() method directly
     
     try {
-      const rpc = await client.call(new GetRoleStatus({ roleId: 99999 }));
+      const result = await GetRoleStatus.fetch(config.host, config.port, { roleId: 99999 });
       
-      expect(rpc.output.retcode).not.toBe(0);
-      expect(rpc.output.status).toBeUndefined();
+      expect(result.retcode).not.toBe(0);
+      expect(result.status).toBeUndefined();
       
     } finally {
     }

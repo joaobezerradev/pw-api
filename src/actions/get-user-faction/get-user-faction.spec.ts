@@ -2,35 +2,32 @@
  * Testes de integração - GetUserFaction
  */
 import { describe, it, expect } from 'vitest';
-import { GameConnection } from '../../core';
 import { GetUserFaction } from './index';
 
 describe('GetUserFaction - Teste de Integração', () => {
-  const connection = new GameConnection('127.0.0.1', 29400);
+  const config = { host: '127.0.0.1', port: 29400 };
 
   it('deve obter facção do personagem pelo roleId', async () => {
     const roleId = 1073;
 
-    const rpc = await connection.call(
-      new GetUserFaction({ roleId })
-    );
+    const result = await GetUserFaction.fetch(config.host, config.port, { roleId });
 
-    expect(rpc.output.retcode).toBe(0);
+    expect(result.retcode).toBe(0);
     
-    if (rpc.output.faction) {
-      expect(rpc.output.faction.roleid).toBe(roleId);
-      expect(typeof rpc.output.faction.name).toBe('string');
-      expect(typeof rpc.output.faction.factionid).toBe('number');
-      expect(typeof rpc.output.faction.cls).toBe('number');
-      expect(typeof rpc.output.faction.role).toBe('number');
+    if (result.faction) {
+      expect(result.faction.roleid).toBe(roleId);
+      expect(typeof result.faction.name).toBe('string');
+      expect(typeof result.faction.factionid).toBe('number');
+      expect(typeof result.faction.cls).toBe('number');
+      expect(typeof result.faction.role).toBe('number');
       
       console.log('✓ Facção do personagem obtida:', {
-        roleId: rpc.output.faction.roleid,
-        nome: rpc.output.faction.name,
-        factionId: rpc.output.faction.factionid,
-        classe: rpc.output.faction.cls,
-        cargo: rpc.output.faction.role,
-        apelido: rpc.output.faction.nickname,
+        roleId: result.faction.roleid,
+        nome: result.faction.name,
+        factionId: result.faction.factionid,
+        classe: result.faction.cls,
+        cargo: result.faction.role,
+        apelido: result.faction.nickname,
       });
     }
   }, 30000);
@@ -39,12 +36,10 @@ describe('GetUserFaction - Teste de Integração', () => {
     const roleId = 999999999;
 
     try {
-      const rpc = await connection.call(
-        new GetUserFaction({ roleId })
-      );
+      const result = await GetUserFaction.fetch(config.host, config.port, { roleId });
       
       // Se não retornou erro, verifica retcode
-      expect(rpc.output.retcode).toBeDefined();
+      expect(result.retcode).toBeDefined();
     } catch (err) {
       // Esperado para roleId inválido
       expect(err).toBeDefined();

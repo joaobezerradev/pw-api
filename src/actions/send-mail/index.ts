@@ -1,18 +1,31 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 import { SendMailInput } from './input';
 import { SendMailOutput } from './output';
 
 /**
  * Action SendMail - Type 0x1076 (4214 decimal)
  * Envia email do sistema para um personagem (SysSendMail)
+ * Porta: 29100 (GDELIVERYD)
+ * 
+ * @example
+ * ```typescript
+ * import { SendMail } from './src';
+ * 
+ * const result = await SendMail.fetch('127.0.0.1', 29100, {
+ *   tid: Date.now(),
+ *   sysid: 32,
+ *   sys_type: 3,
+ *   receiver: 1073,
+ *   title: 'Título do Email',
+ *   context: 'Conteúdo do email',
+ *   attach_obj: { id: 0, pos: 0, count: 0, ... },
+ *   attach_money: 10000,
+ * });
+ * ```
  */
-export class SendMail extends Rpc {
-  private input: SendMailInput;
-  public output: SendMailOutput = { retcode: 0xFFFF, tid: 0 };
-
+export class SendMail extends BaseRpc<SendMailInput, SendMailOutput> {
   constructor(input: SendMailInput) {
-    super(0x1076); // 4214 decimal - SysSendMail
-    this.input = input;
+    super(0x1076, input, { retcode: 0xFFFF, tid: 0 }); // 4214 decimal - SysSendMail
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -45,5 +58,14 @@ export class SendMail extends Rpc {
     // Testando ordem inversa: tid primeiro, depois retcode
     this.output.tid = reader.readUInt32BE();
     this.output.retcode = reader.readUInt16BE();
+  }
+
+  /**
+   * Envia email do sistema
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: SendMailInput): Promise<SendMailOutput> {
+    const rpc = new SendMail(input);
+    return this.executeRpc(host, port, rpc);
   }
 }

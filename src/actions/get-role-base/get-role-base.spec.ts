@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { GameConnection } from '../../core/game-connection';
 import { GetRoleBase } from '.';
 
 const config = {
@@ -11,39 +10,39 @@ const TEST_ROLE_ID = 1073;
 
 describe('GetRoleBase - Teste de Integração', () => {
   it('deve obter dados básicos do personagem com sucesso', async () => {
-    const client = new GameConnection(config.host, config.port);
+    // Using .fetch() method directly
     
     try {
-      const rpc = await client.call(new GetRoleBase({ roleId: TEST_ROLE_ID }));
+      const result = await GetRoleBase.fetch(config.host, config.port, { roleId: TEST_ROLE_ID });
       
       // Verifica retcode
-      expect(rpc.output.retcode).toBe(0);
+      expect(result.retcode).toBe(0);
       
       // Verifica base
-      expect(rpc.output.base).toBeDefined();
-      expect(rpc.output.base?.id).toBe(TEST_ROLE_ID);
-      expect(rpc.output.base?.name).toBe('JJJ');
-      expect(rpc.output.base?.race).toBeTypeOf('number');
-      expect(rpc.output.base?.cls).toBeTypeOf('number');
-      expect(rpc.output.base?.gender).toBeGreaterThanOrEqual(0);
-      expect(rpc.output.base?.gender).toBeLessThanOrEqual(1);
-      expect(rpc.output.base?.userid).toBe(1090);
-      expect(rpc.output.base?.create_time).toBeGreaterThan(0);
-      expect(rpc.output.base?.lastlogin_time).toBeGreaterThan(0);
+      expect(result.base).toBeDefined();
+      expect(result.base?.id).toBe(TEST_ROLE_ID);
+      expect(result.base?.name).toBe('NovoNome');
+      expect(result.base?.race).toBeTypeOf('number');
+      expect(result.base?.cls).toBeTypeOf('number');
+      expect(result.base?.gender).toBeGreaterThanOrEqual(0);
+      expect(result.base?.gender).toBeLessThanOrEqual(1);
+      expect(result.base?.userid).toBe(1090);
+      expect(result.base?.create_time).toBeGreaterThan(0);
+      expect(result.base?.lastlogin_time).toBeGreaterThan(0);
       
     } finally {
     }
   });
 
   it('deve retornar erro para roleId inválido', async () => {
-    const client = new GameConnection(config.host, config.port);
+    // Using .fetch() method directly
     
     try {
-      const rpc = await client.call(new GetRoleBase({ roleId: 99999 }));
+      const result = await GetRoleBase.fetch(config.host, config.port, { roleId: 99999 });
       
       // Deve retornar retcode diferente de 0 (erro)
-      expect(rpc.output.retcode).not.toBe(0);
-      expect(rpc.output.base).toBeUndefined();
+      expect(result.retcode).not.toBe(0);
+      expect(result.base).toBeUndefined();
       
     } finally {
     }

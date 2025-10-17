@@ -3,14 +3,9 @@
  */
 
 // Core
-export { GameConnection, Protocol, Rpc, BufferReader, BufferWriter, LogLevel, Logger } from './core';
+export { Protocol, Rpc, BufferReader, BufferWriter, LogLevel, Logger } from './core';
+export { FireAndForgetProtocol, BaseRpc, PaginatedProtocol } from './core';
 export { GameServerConfig, getServerConfig } from './config';
-
-// Services (Camada de negócio - agregação)
-export { RoleService } from './services';
-
-// Actions (Operações diretas - RPCs/Protocols)
-export { RoleActions } from './actions/role-actions';
 
 // Models (DTOs)
 export type {
@@ -41,8 +36,12 @@ export { RenameRole } from './actions/rename-role';
 export { GetUserRoles } from './actions/get-user-roles';
 export { ClearStorehousePasswd } from './actions/clear-storehouse-passwd';
 
-// GM Protocols
-export { GMBanRole } from './protocols/gm-ban-role';
-export { GMMuteRole } from './protocols/gm-mute-role';
-export { ChatBroadcast, ChatChannel } from './protocols/chat-broadcast';
-export { GMListOnlineUser } from './protocols/gm-list-online-user';
+// GM Actions (Protocolos de Gerenciamento)
+export { GMBanRole } from './actions/gm-ban-role';
+export { GMMuteRole } from './actions/gm-mute-role';
+export { ChatBroadcast, ChatChannel } from './actions/chat-broadcast';
+export { GMListOnlineUser } from './actions/gm-list-online-user';
+
+// Utilities
+export { ServerStatus } from './actions/server-status';
+export type { ServerInfo } from './actions/server-status';

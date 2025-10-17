@@ -1,4 +1,4 @@
-import { Protocol, BufferWriter, BufferReader, GameConnection } from '../core';
+import { FireAndForgetProtocol, BufferWriter, BufferReader } from '../core';
 
 /**
  * Canais de chat disponíveis
@@ -24,7 +24,7 @@ export enum ChatChannel {
  * });
  * ```
  */
-export class ChatBroadcast extends Protocol {
+export class ChatBroadcast extends FireAndForgetProtocol {
   private channel: number;
   private emotion: number;
   private srcRoleId: number;
@@ -78,48 +78,8 @@ export class ChatBroadcast extends Protocol {
     emotion?: number;
     data?: string;
   }): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const net = require('net');
-      const socket = new net.Socket();
-      
-      socket.setTimeout(5000);
-      
-      socket.on('error', (err: Error) => {
-        reject(err);
-      });
-      
-      socket.on('timeout', () => {
-        socket.destroy();
-        reject(new Error('Connection timeout'));
-      });
-      
-      socket.on('connect', () => {
-        try {
-          const protocol = new ChatBroadcast(params);
-          
-          // Monta o pacote
-          const dataWriter = new BufferWriter();
-          protocol.marshal(dataWriter);
-          const data = dataWriter.toBuffer();
-          
-          const writer = new BufferWriter();
-          writer.writeCompactUINT(protocol.getType());
-          writer.writeCompactUINT(data.length);
-          writer.writeBuffer(data);
-          
-          // Envia e fecha imediatamente (fire and forget)
-          socket.write(writer.toBuffer(), () => {
-            socket.end();
-            resolve();
-          });
-        } catch (error) {
-          socket.destroy();
-          reject(error);
-        }
-      });
-      
-      socket.connect(port, host);
-    });
+    const protocol = new ChatBroadcast(params);
+    return this.sendProtocol(host, port, protocol);
   }
 
   /**

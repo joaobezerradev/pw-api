@@ -1,4 +1,4 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 import { ForbidUserInput } from './input';
 import { ForbidUserOutput } from './output';
 
@@ -6,14 +6,23 @@ import { ForbidUserOutput } from './output';
  * RPC ForbidUser - Type 0x1F44 (8004 decimal)
  * Ban/Unban de conta (user)
  * Porta: 29400 (GAMEDBD)
+ * 
+ * @example
+ * ```typescript
+ * import { ForbidUser } from './src';
+ * 
+ * // Banir conta
+ * const result = await ForbidUser.fetch('127.0.0.1', 29400, {
+ *   operation: 1, // 1 = ban, 0 = unban
+ *   userid: 1090,
+ *   time: 3600, // 1 hora
+ *   reason: 'Violação de regras',
+ * });
+ * ```
  */
-export class ForbidUser extends Rpc {
-  private input: ForbidUserInput;
-  public output: ForbidUserOutput = { retcode: -1 };
-
+export class ForbidUser extends BaseRpc<ForbidUserInput, ForbidUserOutput> {
   constructor(input: ForbidUserInput) {
-    super(0x1F44); // 8004
-    this.input = input;
+    super(0x1F44, input, { retcode: -1 }); // 8004
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -49,6 +58,15 @@ export class ForbidUser extends Rpc {
         reason: reader.readOctetsAsString(),
       };
     }
+  }
+
+  /**
+   * Ban/Unban de conta
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: ForbidUserInput): Promise<ForbidUserOutput> {
+    const rpc = new ForbidUser(input);
+    return this.executeRpc(host, port, rpc);
   }
 }
 

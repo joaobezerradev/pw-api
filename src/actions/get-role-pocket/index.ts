@@ -65,6 +65,70 @@ export class GetRolePocket extends Rpc {
       mask: reader.readInt32BE(),
     };
   }
+
+  /**
+   * Busca inventário de um personagem
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: GetRolePocketInput): Promise<GetRolePocketOutput> {
+    return new Promise((resolve, reject) => {
+      const net = require('net');
+      const socket = new net.Socket();
+      
+      socket.setTimeout(20000);
+      
+      socket.on('error', (err: Error) => reject(err));
+      socket.on('timeout', () => {
+        socket.destroy();
+        reject(new Error('Connection timeout'));
+      });
+      
+      let responseBuffer = Buffer.alloc(0);
+      let foundResponse = false;
+      
+      socket.on('data', (data: Buffer) => {
+        responseBuffer = Buffer.concat([responseBuffer, data]);
+        if (foundResponse) return;
+        
+        try {
+          const reader = new BufferReader(responseBuffer);
+          const responseType = reader.readCompactUINT();
+          const size = reader.readCompactUINT();
+          
+          if (responseBuffer.length >= reader.getOffset() + size) {
+            foundResponse = true;
+            const rpc = new GetRolePocket(input);
+            rpc.unmarshalResult(reader);
+            socket.end();
+            resolve(rpc.output);
+          }
+        } catch (error) {
+          // Aguarda mais dados
+        }
+      });
+      
+      socket.on('connect', () => {
+        try {
+          const rpc = new GetRolePocket(input);
+          const dataWriter = new BufferWriter();
+          rpc.marshalArgument(dataWriter);
+          const data = dataWriter.toBuffer();
+          
+          const writer = new BufferWriter();
+          writer.writeCompactUINT(rpc.getType());
+          writer.writeCompactUINT(data.length);
+          writer.writeBuffer(data);
+          
+          socket.write(writer.toBuffer());
+        } catch (error) {
+          socket.destroy();
+          reject(error);
+        }
+      });
+      
+      socket.connect(port, host);
+    });
+  }
 };
 
 export type { GetRolePocketInput, GetRolePocketOutput, RolePocket, RoleInventory };

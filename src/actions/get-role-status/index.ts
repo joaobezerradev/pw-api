@@ -1,18 +1,31 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 import { GetRoleStatusInput } from './input';
 import { GetRoleStatusOutput, RoleStatus } from './output';
 
 /**
  * RPC GetRoleStatus - Type 0x0BC7 (3015 decimal)
  * Obtém apenas o status do personagem (level, HP, MP, posição, etc)
+ * Porta: 29400 (GAMEDBD)
+ * 
+ * @example
+ * ```typescript
+ * import { GetRoleStatus } from './src';
+ * 
+ * // Buscar status de um personagem
+ * const result = await GetRoleStatus.fetch('127.0.0.1', 29400, {
+ *   roleId: 1024,
+ * });
+ * 
+ * if (result.retcode === 0) {
+ *   console.log(`Level: ${result.status?.level}`);
+ *   console.log(`HP: ${result.status?.hp}`);
+ *   console.log(`MP: ${result.status?.mp}`);
+ * }
+ * ```
  */
-export class GetRoleStatus extends Rpc {
-  private input: GetRoleStatusInput;
-  public output: GetRoleStatusOutput = { retcode: -1 };
-
+export class GetRoleStatus extends BaseRpc<GetRoleStatusInput, GetRoleStatusOutput> {
   constructor(input: GetRoleStatusInput) {
-    super(0x0BC7); // 3015
-    this.input = input;
+    super(0x0BC7, input, { retcode: -1 }); // 3015
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -84,6 +97,15 @@ export class GetRoleStatus extends Rpc {
     reader.readInt32BE(); // reserved5
 
     return status;
+  }
+
+  /**
+   * Busca status de um personagem
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: GetRoleStatusInput): Promise<GetRoleStatusOutput> {
+    const rpc = new GetRoleStatus(input);
+    return this.executeRpc(host, port, rpc);
   }
 };
 

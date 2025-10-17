@@ -1,4 +1,4 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 
 /**
  * Input do RPC RenameRole
@@ -25,26 +25,23 @@ export type RenameRoleOutput = {
  * 
  * @example
  * ```typescript
- * const connection = new GameConnection('127.0.0.1', 29400);
+ * import { RenameRole } from './src';
  * 
- * const rpc = await connection.call(new RenameRole({
+ * // Uso independente
+ * const result = await RenameRole.fetch('127.0.0.1', 29400, {
  *   roleId: 1073,
  *   oldName: 'NomeAntigo',
  *   newName: 'NovoNome',
- * }));
+ * });
  * 
- * if (rpc.output.retcode === 0) {
+ * if (result.retcode === 0) {
  *   console.log('✅ Personagem renomeado com sucesso!');
  * }
  * ```
  */
-export class RenameRole extends Rpc {
-  private input: RenameRoleInput;
-  public output: RenameRoleOutput = { retcode: -1 };
-
+export class RenameRole extends BaseRpc<RenameRoleInput, RenameRoleOutput> {
   constructor(input: RenameRoleInput) {
-    super(3404); // 0xD4C = 3404
-    this.input = input;
+    super(3404, input, { retcode: -1 }); // 0xD4C = 3404
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -65,6 +62,15 @@ export class RenameRole extends Rpc {
     // Lê localsid primeiro (como outros RPCs)
     const localsid = reader.readInt32BE();
     this.output.retcode = reader.readInt32BE();
+  }
+
+  /**
+   * Renomeia um personagem
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: RenameRoleInput): Promise<RenameRoleOutput> {
+    const rpc = new RenameRole(input);
+    return this.executeRpc(host, port, rpc);
   }
 }
 

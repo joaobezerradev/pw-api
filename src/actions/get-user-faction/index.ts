@@ -1,20 +1,24 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 import { GetUserFactionInput } from './input';
 import { GetUserFactionOutput, UserFaction } from './output';
 
 /**
  * RPC GetUserFaction - Type 0x11FF (4607 decimal)
  * Obtém informações da facção do personagem pelo roleId
+ * Porta: 29400 (GAMEDBD)
  * 
- * IMPORTANTE: Envia 3 parâmetros conforme código PHP
+ * @example
+ * ```typescript
+ * import { GetUserFaction } from './src';
+ * 
+ * const result = await GetUserFaction.fetch('127.0.0.1', 29400, {
+ *   roleId: 1073,
+ * });
+ * ```
  */
-export class GetUserFaction extends Rpc {
-  private input: GetUserFactionInput;
-  public output: GetUserFactionOutput = { retcode: -1 };
-
+export class GetUserFaction extends BaseRpc<GetUserFactionInput, GetUserFactionOutput> {
   constructor(input: GetUserFactionInput) {
-    super(0x11FF); // 4607
-    this.input = input;
+    super(0x11FF, input, { retcode: -1 }); // 4607
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -53,6 +57,15 @@ export class GetUserFaction extends Rpc {
       extend,
       nickname,
     };
+  }
+
+  /**
+   * Busca facção do personagem
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: GetUserFactionInput): Promise<GetUserFactionOutput> {
+    const rpc = new GetUserFaction(input);
+    return this.executeRpc(host, port, rpc);
   }
 }
 

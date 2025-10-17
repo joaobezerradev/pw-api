@@ -1,4 +1,4 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 
 /**
  * Input do RPC GetUserRoles
@@ -31,31 +31,24 @@ export type GetUserRolesOutput = {
  * 
  * @example
  * ```typescript
- * const connection = new GameConnection('127.0.0.1', 29400);
+ * import { GetUserRoles } from './src';
  * 
- * const rpc = await connection.call(new GetUserRoles({
+ * // Uso independente
+ * const result = await GetUserRoles.fetch('127.0.0.1', 29400, {
  *   userid: 16,
- * }));
+ * });
  * 
- * if (rpc.output.retcode === 0) {
- *   console.log(`Personagens encontrados: ${rpc.output.count}`);
- *   rpc.output.roles.forEach(role => {
+ * if (result.retcode === 0) {
+ *   console.log(`Personagens encontrados: ${result.count}`);
+ *   result.roles.forEach(role => {
  *     console.log(`- ${role.rolename} (ID: ${role.roleid})`);
  *   });
  * }
  * ```
  */
-export class GetUserRoles extends Rpc {
-  private input: GetUserRolesInput;
-  public output: GetUserRolesOutput = { 
-    retcode: -1,
-    count: 0,
-    roles: []
-  };
-
+export class GetUserRoles extends BaseRpc<GetUserRolesInput, GetUserRolesOutput> {
   constructor(input: GetUserRolesInput) {
-    super(3401); // 0xD49 = 3401
-    this.input = input;
+    super(3401, input, { retcode: -1, count: 0, roles: [] }); // 0xD49 = 3401
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -86,6 +79,15 @@ export class GetUserRoles extends Rpc {
         });
       }
     }
+  }
+
+  /**
+   * Busca lista de personagens de uma conta
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: GetUserRolesInput): Promise<GetUserRolesOutput> {
+    const rpc = new GetUserRoles(input);
+    return this.executeRpc(host, port, rpc);
   }
 }
 

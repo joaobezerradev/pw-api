@@ -1,18 +1,24 @@
-import { Rpc, BufferWriter, BufferReader } from '../../core';
+import { BaseRpc, BufferWriter, BufferReader } from '../../core';
 import { GetFactionInfoInput } from './input';
 import { GetFactionInfoOutput, FactionInfo, FactionMember } from './output';
 
 /**
  * RPC GetFactionInfo - Type 0x11FE (4606 decimal)
  * Obtém informações completas da facção pelo factionId
+ * Porta: 29400 (GAMEDBD)
+ * 
+ * @example
+ * ```typescript
+ * import { GetFactionInfo } from './src';
+ * 
+ * const result = await GetFactionInfo.fetch('127.0.0.1', 29400, {
+ *   factionId: 1,
+ * });
+ * ```
  */
-export class GetFactionInfo extends Rpc {
-  private input: GetFactionInfoInput;
-  public output: GetFactionInfoOutput = { retcode: -1 };
-
+export class GetFactionInfo extends BaseRpc<GetFactionInfoInput, GetFactionInfoOutput> {
   constructor(input: GetFactionInfoInput) {
-    super(0x11FE); // 4606
-    this.input = input;
+    super(0x11FE, input, { retcode: -1 }); // 4606
   }
 
   marshalArgument(writer: BufferWriter): void {
@@ -60,6 +66,15 @@ export class GetFactionInfo extends Rpc {
       announce,
       sysinfo,
     };
+  }
+
+  /**
+   * Busca informações da facção
+   * Método independente que não requer GameConnection
+   */
+  static async fetch(host: string, port: number, input: GetFactionInfoInput): Promise<GetFactionInfoOutput> {
+    const rpc = new GetFactionInfo(input);
+    return this.executeRpc(host, port, rpc);
   }
 }
 
