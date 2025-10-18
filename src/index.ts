@@ -5,6 +5,8 @@
 // Core
 export { Protocol, Rpc, BufferReader, BufferWriter, LogLevel, Logger } from './core';
 export { FireAndForgetProtocol, BaseRpc, PaginatedProtocol } from './core';
+export { Connection, GameDBConnection, GDeliveryConnection, GProviderConnection } from './core';
+export * from './core/interfaces'; // RpcAction, FireAndForgetAction
 export { GameServerConfig, getServerConfig } from './config';
 
 // Models (DTOs)
@@ -18,29 +20,31 @@ export type {
 } from './models';
 
 // Faction types
-export type { FactionInfo, FactionMember } from './actions/get-faction-info/output';
-export type { UserFaction } from './actions/get-user-faction/output';
+export type { FactionInfo, FactionMember } from './actions/gamedb/get-faction-info';
+export type { UserFaction } from './actions/gamedb/get-user-faction';
 
-// Actions individuais (para uso avançado/direto)
-export { GetRoleBase } from './actions/get-role-base';
-export { GetRoleStatus } from './actions/get-role-status';
-export { GetRoleBaseStatus } from './actions/get-role-base-status';
-export { GetRolePocket } from './actions/get-role-pocket';
-export { GetRoleEquipment } from './actions/get-role-equipment';
-export { GetRoleStorehouse } from './actions/get-role-storehouse';
-export { GetFactionInfo } from './actions/get-faction-info';
-export { GetUserFaction } from './actions/get-user-faction';
-export { ForbidUser } from './actions/forbid-user';
-export { SendMail } from './actions/send-mail';
-export { RenameRole } from './actions/rename-role';
-export { GetUserRoles } from './actions/get-user-roles';
-export { ClearStorehousePasswd } from './actions/clear-storehouse-passwd';
+// Actions - GameDB (porta 29400)
+export { GetRoleBase } from './actions/gamedb/get-role-base';
+export { GetRoleStatus } from './actions/gamedb/get-role-status';
+export { GetRoleBaseStatus } from './actions/gamedb/get-role-base-status';
+export { GetRolePocket } from './actions/gamedb/get-role-pocket';
+export { GetRoleEquipment } from './actions/gamedb/get-role-equipment';
+export { GetRoleStorehouse } from './actions/gamedb/get-role-storehouse';
+export { GetFactionInfo } from './actions/gamedb/get-faction-info';
+export { GetUserFaction } from './actions/gamedb/get-user-faction';
+export { ForbidUser } from './actions/gamedb/forbid-user';
+export { RenameRole } from './actions/gamedb/rename-role';
+export { GetUserRoles } from './actions/gamedb/get-user-roles';
+export { ClearStorehousePasswd } from './actions/gamedb/clear-storehouse-passwd';
 
-// GM Actions (Protocolos de Gerenciamento)
-export { GMBanRole } from './actions/gm-ban-role';
-export { GMMuteRole } from './actions/gm-mute-role';
-export { ChatBroadcast, ChatChannel } from './actions/chat-broadcast';
-export { GMListOnlineUser } from './actions/gm-list-online-user';
+// Actions - GDelivery (porta 29100)
+export { SendMail } from './actions/gdelivery/send-mail';
+export { GMBanRole } from './actions/gdelivery/gm-ban-role';
+export { GMMuteRole } from './actions/gdelivery/gm-mute-role';
+export { GMListOnlineUser } from './actions/gdelivery/gm-list-online-user';
+
+// Actions - GProvider (porta 29300)
+export { ChatBroadcast, ChatChannel } from './actions/gprovider/chat-broadcast';
 
 // Utilities
 export { ServerStatus } from './actions/server-status';
