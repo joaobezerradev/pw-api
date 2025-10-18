@@ -19,16 +19,18 @@ export namespace GMMuteRole {
  * Porta: 29100 (GDELIVERYD)
  */
 export class GMMuteRole extends FireAndForgetProtocol implements FireAndForgetAction<GMMuteRole.Input> {
+  private input!: GMMuteRole.Input;
+
   constructor(private readonly connection: GDeliveryConnection) {
     super(0x164); // 356
   }
 
-  marshal(writer: BufferWriter, params: GMMuteRole.Input): void {
-    writer.writeInt32BE(params.gmRoleId ?? -1);
-    writer.writeUInt32BE(params.ssid ?? 0);
-    writer.writeUInt32BE(params.roleId);
-    writer.writeUInt32BE(params.time);
-    writer.writeOctetsString(params.reason);
+  marshal(writer: BufferWriter): void {
+    writer.writeInt32BE(this.input.gmRoleId ?? -1);
+    writer.writeUInt32BE(this.input.ssid ?? 0);
+    writer.writeUInt32BE(this.input.roleId);
+    writer.writeUInt32BE(this.input.time);
+    writer.writeOctetsString(this.input.reason);
   }
 
   unmarshal(reader: BufferReader): void {
@@ -36,8 +38,9 @@ export class GMMuteRole extends FireAndForgetProtocol implements FireAndForgetAc
   }
 
   async execute(params: GMMuteRole.Input): Promise<void> {
+    this.input = params;
     const dataWriter = new BufferWriter();
-    this.marshal(dataWriter, params);
+    this.marshal(dataWriter);
     const data = dataWriter.toBuffer();
     
     return new Promise((resolve, reject) => {

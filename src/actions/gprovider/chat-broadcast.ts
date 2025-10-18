@@ -27,16 +27,18 @@ export namespace ChatBroadcast {
  * Envia uma mensagem de broadcast para todos os jogadores online
  */
 export class ChatBroadcast extends FireAndForgetProtocol implements FireAndForgetAction<ChatBroadcast.Input> {
+  private input!: ChatBroadcast.Input;
+
   constructor(private readonly connection: GProviderConnection) {
     super(120); // 0x78
   }
 
-  marshal(writer: BufferWriter, params: ChatBroadcast.Input): void {
-    writer.writeUInt8(params.channel);
-    writer.writeUInt8(params.emotion ?? 0);
-    writer.writeInt32BE(params.srcRoleId ?? 0);
-    writer.writeOctetsString(params.message);
-    writer.writeOctetsString(params.data ?? '');
+  marshal(writer: BufferWriter): void {
+    writer.writeUInt8(this.input.channel);
+    writer.writeUInt8(this.input.emotion ?? 0);
+    writer.writeInt32BE(this.input.srcRoleId ?? 0);
+    writer.writeOctetsString(this.input.message);
+    writer.writeOctetsString(this.input.data ?? '');
   }
 
   unmarshal(reader: BufferReader): void {
@@ -44,8 +46,9 @@ export class ChatBroadcast extends FireAndForgetProtocol implements FireAndForge
   }
 
   async execute(params: ChatBroadcast.Input): Promise<void> {
+    this.input = params;
     const dataWriter = new BufferWriter();
-    this.marshal(dataWriter, params);
+    this.marshal(dataWriter);
     const data = dataWriter.toBuffer();
     
     return new Promise((resolve, reject) => {

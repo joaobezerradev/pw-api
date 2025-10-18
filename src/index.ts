@@ -49,3 +49,6 @@ export { ChatBroadcast, ChatChannel } from './actions/gprovider/chat-broadcast';
 // Utilities
 export { ServerStatus } from './actions/server-status';
 export type { ServerInfo } from './actions/server-status';
+
+// Factories (maneira simplificada de usar)
+export { GameDBFactory, GDeliveryFactory, GProviderFactory } from './factories';
