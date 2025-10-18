@@ -51,17 +51,13 @@ export {
 // GProvider Client (porta 29300)
 export { ChatBroadcast, ChatChannel } from './infra/clients/gprovider';
 
-// ===== DOMAIN ENTITIES (DTOs) =====
-export type {
-  RoleBase,
-  RoleStatus,
-  RoleInventory,
-  RolePocket,
-  RoleStorehouse,
-  MailGoods
-} from './domain/entities';
-
-// Types específicos dos clients (usando namespaces)
+// ===== CLIENT TYPES (usando namespaces das actions) =====
+// Tipos extraídos dos namespaces das actions
+export type RoleBase = import('./infra/clients/gamedb/get-role-base').GetRoleBase.RoleBase;
+export type RoleStatus = import('./infra/clients/gamedb/get-role-status').GetRoleStatus.RoleStatus;
+export type RoleInventory = import('./infra/clients/gamedb/get-role-equipment').GetRoleEquipment.RoleInventory;
+export type RolePocket = import('./infra/clients/gamedb/get-role-pocket').GetRolePocket.RolePocket;
+export type RoleStorehouse = import('./infra/clients/gamedb/get-role-storehouse').GetRoleStorehouse.RoleStorehouse;
 export type FactionInfo = import('./infra/clients/gamedb/get-faction-info').GetFactionInfo.FactionInfo;
 export type FactionMember = import('./infra/clients/gamedb/get-faction-info').GetFactionInfo.FactionMember;
 export type UserFaction = import('./infra/clients/gamedb/get-user-faction').GetUserFaction.UserFaction;
